@@ -1,5 +1,5 @@
 const WebSocket = require('ws');
-const serverIP = '192.168.1.71';  // Die IP-Adresse des WebSocket-Servers
+const serverIP = 'xxx.xxx.xxx.xxx';  // Die IP-Adresse des WebSocket-Servers
 const wsUrl = `ws://${serverIP}/ws`;  // WebSocket-URL
 
 let ws;
@@ -102,7 +102,7 @@ function startHeartbeat() {
         if (ws.readyState === WebSocket.OPEN) {
             ws.ping(() => console.log('Ping sent'));
         }
-    }, 30000); // Send ping every 30 seconds
+    }, 10000); // Send ping every 10 seconds
 
     ws.on('pong', () => {
         console.log('Pong received');
