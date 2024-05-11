@@ -1,5 +1,5 @@
-# Open-E-Paper-Link-JS
-A Script for receiving the websocket from the open e-paper link project.
+# OpenEPaperLink JavaScript for IOBROKER
+A Script for receiving the websocket from the OpenEPaperLink project -> https://github.com/jjwbruijn/OpenEPaperLink
 
 Unfortunately, the original adapter for the iobroker is no longer being developed. I have therefore written a script that retrieves the data. It can't do more than retrieve, but it reacts to the buttons accordingly. 
 
