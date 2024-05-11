@@ -1,5 +1,5 @@
 const WebSocket = require('ws');
-const serverIP = 'XXX.XXX.XXX.XXX';  // Die IP-Adresse des OEPL Access Points eintragen
+const serverIP = '192.168.1.71';  // Die IP-Adresse des WebSocket-Servers
 const wsUrl = `ws://${serverIP}/ws`;  // WebSocket-URL
 
 let ws;
@@ -41,7 +41,7 @@ function createStateAndSet(statePath, value) {
         type: 'state',
         common: {
             name: statePath.split('.').pop(),
-            type: 'string',  // Explizit als 'string' definieren
+            type: 'string',  // Definiert als 'string'
             role: 'value',
             read: true,
             write: true
@@ -102,7 +102,7 @@ function startHeartbeat() {
         if (ws.readyState === WebSocket.OPEN) {
             ws.ping(() => console.log('Ping sent'));
         }
-    }, 10000); // Send ping every 30 seconds
+    }, 30000); // Send ping every 30 seconds
 
     ws.on('pong', () => {
         console.log('Pong received');
@@ -116,9 +116,7 @@ function handleData(parsedData) {
             ensureChannelExists(basePath, tag.alias, () => {
                 Object.keys(tag).forEach(key => {
                     let statePath = `${basePath}.${key}`;
-                    // Handle timestamps specifically
-                    let value = (key === 'lastseen' || key === 'nextupdate') ? new Date(tag[key] * 1000).toISOString() : tag[key];
-                    updateStateIfChanged(statePath, value);
+                    updateStateIfChanged(statePath, tag[key]);
                 });
             });
         });
