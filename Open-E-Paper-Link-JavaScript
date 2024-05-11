@@ -1,0 +1,108 @@
+const WebSocket = require('ws');
+const serverIP = '192.168.1.71';  // Die IP-Adresse des WebSocket-Servers
+const wsUrl = `ws://${serverIP}/ws`;  // WebSocket-URL
+
+let ws;
+
+function ensureOEPLFolderExists(callback) {
+    const oeplFolderPath = '0_userdata.0.OEPL';
+    getObject(oeplFolderPath, (err, obj) => {
+        if (err || !obj) {
+            setObject(oeplFolderPath, {
+                type: 'channel',
+                common: { name: 'Open E-Paper Link' },
+                native: {}
+            }, callback);
+        } else {
+            callback();
+        }
+    });
+}
+
+function ensureChannelExists(path, alias, callback) {
+    getObject(path, (err, obj) => {
+        if (err || !obj) {
+            setObject(path, {
+                type: 'channel',
+                common: { name: alias || 'Unbekanntes Gerät' },
+                native: {}
+            }, callback);
+        } else if (obj.common.name !== alias) {
+            extendObject(path, { common: { name: alias } }, callback);
+        } else {
+            callback();
+        }
+    });
+}
+
+function createStateAndSet(statePath, value) {
+    setObject(statePath, {
+        type: 'state',
+        common: {
+            name: statePath.split('.').pop(),
+            type: typeof value,
+            role: 'value',
+            read: true,
+            write: true
+        },
+        native: {}
+    }, (err) => {
+        if (!err) {
+            setState(statePath, value, true);
+        }
+    });
+}
+
+function updateStateIfChanged(statePath, value) {
+    getState(statePath, (err, state) => {
+        if (err || !state) {
+            createStateAndSet(statePath, value);
+        } else if (state.val !== value) {
+            setState(statePath, value, true);
+        }
+    });
+}
+
+function connectWebSocket() {
+    ws = new WebSocket(wsUrl);
+    ws.on('open', function open() {
+        console.log('Verbunden mit WebSocket');
+    });
+
+    ws.on('message', function incoming(data) {
+        console.log('Daten empfangen:', data);
+        handleData(data);
+    });
+
+    ws.on('close', function close() {
+        console.log('WebSocket-Verbindung geschlossen, versuche neu zu verbinden...');
+        setTimeout(connectWebSocket, 5000);
+    });
+
+    ws.on('error', function error(err) {
+        console.error('WebSocket-Fehler:', err);
+        ws.close();
+    });
+}
+
+function handleData(data) {
+    try {
+        let parsedData = JSON.parse(data);
+        console.log('Verarbeitete Daten:', JSON.stringify(parsedData, null, 2)); // Ausgabe der verarbeiteten Daten in einer formatierten Form
+        if (parsedData.tags && Array.isArray(parsedData.tags)) {
+            parsedData.tags.forEach(tag => {
+                let basePath = `0_userdata.0.OEPL.${tag.mac.replace(/:/g, '')}`;
+                ensureChannelExists(basePath, tag.alias, () => {
+                    Object.keys(tag).forEach(key => {
+                        let statePath = `${basePath}.${key}`;
+                        updateStateIfChanged(statePath, tag[key]);
+                    });
+                });
+            });
+        }
+    } catch (err) {
+        console.error('Fehler bei der Verarbeitung der Daten:', err);
+    }
+}
+
+connectWebSocket();
