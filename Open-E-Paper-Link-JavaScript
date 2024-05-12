@@ -1,6 +1,11 @@
+/// HIER DIE IP ADRESSE VOM OEPL ACCESS POINT EINTRAGEN
+
+const serverIP = 'XXX.XXX.XXX.XXX';  //z.B. 192.168.1.71
+
+/// AB HIER NICHTS MEHR ÄNDERN!
+
 const WebSocket = require('ws');
 const http = require('http');
-const serverIP = '192.168.1.71';  // Die IP-Adresse des WebSocket-Servers
 const wsUrl = `ws://${serverIP}/ws`;  // WebSocket-URL
 
 let ws;
