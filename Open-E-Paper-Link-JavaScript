@@ -1,4 +1,5 @@
 const WebSocket = require('ws');
+const http = require('http');
 const serverIP = '192.168.1.71';  // Die IP-Adresse des WebSocket-Servers
 const wsUrl = `ws://${serverIP}/ws`;  // WebSocket-URL
 
@@ -41,7 +42,7 @@ function createStateAndSet(statePath, value) {
         type: 'state',
         common: {
             name: statePath.split('.').pop(),
-            type: 'string',  // Explizit als 'string' definieren
+            type: 'string',
             role: 'value',
             read: true,
             write: true
@@ -60,6 +61,48 @@ function updateStateIfChanged(statePath, value) {
             createStateAndSet(statePath, String(value));
         } else if (state.val !== String(value)) {
             setState(statePath, String(value), true);
+        }
+    });
+}
+
+function fetchDimensions(hwType, callback) {
+    const hwTypeHex = hwType.toString(16).padStart(2, '0');  // Convert hwType to two-digit hexadecimal
+    const url = `http://${serverIP}/tagtypes/${hwTypeHex}.json`;
+    http.get(url, (res) => {
+        let data = '';
+        res.on('data', (chunk) => data += chunk);
+        res.on('end', () => {
+            if (res.statusCode === 200) {
+                try {
+                    const dimensions = JSON.parse(data);
+                    callback(null, dimensions);
+                } catch (e) {
+                    callback(`Error parsing JSON from ${url}: ${e}`);
+                }
+            } else {
+                callback(`HTTP Error ${res.statusCode} from ${url}`);
+            }
+        });
+    }).on('error', (err) => {
+        callback(`Error fetching ${url}: ${err.message}`);
+    });
+}
+
+function handleHWType(basePath, hwType) {
+    createStateAndSet(`${basePath}.hwType`, String(hwType));  // Save hwType as a state
+    fetchDimensions(hwType, (err, dimensions) => {
+        if (!err && dimensions) {
+            createStateAndSet(`${basePath}.height`, String(dimensions.height));
+            createStateAndSet(`${basePath}.width`, String(dimensions.width));
+            createStateAndSet(`${basePath}.name`, String(dimensions.name));
+            if (dimensions.colors) {
+                createStateAndSet(`${basePath}.colors`, String(dimensions.colors));
+            }
+            if (dimensions.colortable) {
+                createStateAndSet(`${basePath}.colortable`, JSON.stringify(dimensions.colortable));
+            }
+        } else {
+            console.error(`Failed to fetch or set dimensions for hwType ${hwType}: ${err}`);
         }
     });
 }
@@ -102,7 +145,7 @@ function startHeartbeat() {
         if (ws.readyState === WebSocket.OPEN) {
             ws.ping(() => console.log('Ping sent'));
         }
-    }, 30000); // Send ping every 30 seconds
+    }, 10000); // Send ping every 10 seconds
 
     ws.on('pong', () => {
         console.log('Pong received');
@@ -116,9 +159,11 @@ function handleData(parsedData) {
             ensureChannelExists(basePath, tag.alias, () => {
                 Object.keys(tag).forEach(key => {
                     let statePath = `${basePath}.${key}`;
-                    // Handle timestamps specifically
-                    let value = (key === 'lastseen' || key === 'nextupdate') ? new Date(tag[key] * 1000).toISOString() : tag[key];
+                    let value = tag[key];
                     updateStateIfChanged(statePath, value);
+                    if (key === 'hwType') {
+                        handleHWType(basePath, tag.hwType);
+                    }
                 });
             });
         });
