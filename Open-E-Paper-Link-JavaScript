@@ -66,7 +66,7 @@ function updateStateIfChanged(statePath, value) {
 }
 
 function fetchDimensions(hwType, callback) {
-    const hwTypeHex = hwType.toString(16).padStart(2, '0');  // Convert hwType to two-digit hexadecimal
+    const hwTypeHex = hwType.toString(16).padStart(2, '0').toUpperCase();  // Convert hwType to two-digit uppercase hexadecimal
     const url = `http://${serverIP}/tagtypes/${hwTypeHex}.json`;
     http.get(url, (res) => {
         let data = '';
