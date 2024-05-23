@@ -12,21 +12,21 @@ Especially the displays (tags) with buttons change the value of â€œwakeupreasonâ
 
 ![image](https://github.com/slimline33/OpenEPaperLink-IOBROKER-JavaScript/assets/3323812/64b703fd-88cf-4491-9676-883750a06da7)
 
-WebSocket Connection: Connects to the server using WebSockets and handles events such as open, message receive, close, and error.
+**Benefits:**
 
-Ping/Pong Heartbeat: The script sends a ping every 10 seconds to keep the connection active and receives pong messages.
+1. WebSocket Connection: Connects to the server using WebSockets and handles events such as open, message receive, close, and error.
 
-Data Processing: Parses incoming data and processes it accordingly.
+2. Ping/Pong Heartbeat: The script sends a ping every 10 seconds to keep the connection active and receives pong messages.
 
-Data Point Creation: For each relevant value in the incoming data stream, a corresponding data point is created in ioBroker.
+3. Data Processing: Parses incoming data and processes it accordingly.
 
-Non-writable States: All created states are set as "non-writable" (write: false) to prevent them from being modified by the user interface or other scripts.
+4. Data Point Creation: For each relevant value in the incoming data stream, a corresponding data point is created in ioBroker.
 
-Dynamic Retrieval and Setting of Additional Data:
+5. Non-writable States: All created states are set as "non-writable" (write: false) to prevent them from being modified by the user interface or other scripts.
 
-Fetching device dimensions (height and width) based on the hwType.
-Converting the hwType into an uppercase hexadecimal string for the filename.
-Storing additional data such as name, colors, and colortable from an external JSON file based on the hwType.
-Automatic Reconnection: In case of connection disruptions, the script attempts to reconnect automatically every 5 seconds.
+6. Dynamic Retrieval and Setting of Additional Data:
+6.1 Fetching device dimensions (height and width) based on the hwType.
+6.2 Converting the hwType into an uppercase hexadecimal string for the filename.
+6.3 Storing additional data such as name, colors, and colortable from an external JSON file based on the hwType.
 
-Error Handling: Extensive error handling throughout the data processing, including logging errors for HTTP requests or data parsing.
+7. Error Handling: Extensive error handling throughout the data processing, including logging errors for HTTP requests or data parsing.
