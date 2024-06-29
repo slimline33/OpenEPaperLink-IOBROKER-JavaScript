@@ -1,3 +1,5 @@
+// Dieses JavaScript erstellt ein Bild über chatGTP welches das aktuelle Wetter darstellt und lädt es in ein bestimmtes Verzeichnis.
+
 const axios = require('axios');
 const fs = require('fs');
 const path = require('path');
