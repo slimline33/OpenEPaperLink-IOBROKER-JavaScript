@@ -48,7 +48,7 @@ The prompt includes specific instructions to use only three colors (black, white
 Sends a request to the DALL-E 3 API to generate the image based on the prompt.
 Logs the URL of the generated image and any errors encountered during the process.
 
-**Check for Weather Chang:**
+**Check for Weather Change:**
 
 Compares the current weather description with the last recorded weather condition. If the weather has changed, it triggers the image generation process and updates the last recorded weather file.
 Logs whether a new image generation was necessary based on the weather change. 
@@ -68,7 +68,6 @@ CHATGPT_API_KEY: API key for accessing the DALL-E 3 model.
 BASE_PATH: Base path for storing files.
 LAST_WEATHER_FILE: Path to store the last recorded weather condition.
 IMAGE_SAVE_PATH: Path to save the initially generated image.
-IMAGE_RESIZED_PATH: Path to save the resized image.
 LOG_FILE_PATH: Path to save the log file.
 
 **Image Dimensions:**
