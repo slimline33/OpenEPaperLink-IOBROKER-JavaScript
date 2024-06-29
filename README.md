@@ -1,4 +1,4 @@
-# OpenEPaperLink JavaScript for IOBROKER
+# OpenEPaperLink WEBSOCKET JavaScript for IOBROKER
 
 Unfortunately, the original adapter for the iobroker is no longer being developed. I have therefore written a script that retrieves the data. It can't do more than retrieve, but it reacts to the buttons accordingly. 
 
@@ -34,6 +34,8 @@ Especially the displays (tags) with buttons change the value of â€œwakeupreasonâ
 # OpenEPaperLink Weather Image from chatGTP
 
 This script is designed to fetch the current weather for a specified city using the OpenWeatherMap API, generate an artistic image based on the weather condition using the DALL-E 3 model, resize the generated image, and log the entire process. The script is configured to run automatically every day at 5 AM.
+
+![chatgtp-weather-image](https://github.com/slimline33/OpenEPaperLink-IOBROKER-JavaScript/assets/3323812/6d188e34-8866-4bf0-9934-a93aad208301)
 
 **Key Features:**
 
