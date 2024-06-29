@@ -60,14 +60,19 @@ Configured to run daily at 5 AM to fetch the latest weather data and update the 
 **SETTINGS**
 
 WEATHER_API_KEY: API key for accessing OpenWeatherMap.
+
 CHATGPT_API_URL: URL endpoint for accessing the DALL-E 3 API.
+
 CHATGPT_API_KEY: API key for accessing the DALL-E 3 model.
 
 **Paths and File Locations:**
 
 BASE_PATH: Base path for storing files.
+
 LAST_WEATHER_FILE: Path to store the last recorded weather condition.
+
 IMAGE_SAVE_PATH: Path to save the initially generated image.
+
 LOG_FILE_PATH: Path to save the log file.
 
 **Image Dimensions:**
@@ -77,8 +82,11 @@ IMAGE_WIDTH and IMAGE_HEIGHT: Dimensions for the generated image.
 **Libraries and Tools Used:**
 
 axios: For making HTTP requests to the OpenWeatherMap and DALL-E 3 APIs.
+
 fs (File System): For reading and writing files.
+
 path: For handling file paths.
+
 winston: For logging the process and errors.
 
 **Fetch Current Weather Data:**
@@ -92,4 +100,5 @@ Create a prompt based on the weather condition. Send a request to the DALL-E 3 A
 Compare the current weather with the last recorded weather. If the weather has changed, generate a new image and update the last weather record. Log whether a new image was generated.
 
 Run the entire script daily at 5 AM to ensure the image is up-to-date with the current weather.
+
 This script automates the process of generating and updating an artistic representation of the current weather, making it suitable for use in applications like digital displays or weather dashboards.
