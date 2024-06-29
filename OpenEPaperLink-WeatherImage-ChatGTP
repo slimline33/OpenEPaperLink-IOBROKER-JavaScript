@@ -1,0 +1,153 @@
+const axios = require('axios');
+const fs = require('fs');
+const path = require('path');
+const winston = require('winston');
+
+// Parameter und API-Schlüssel
+const WEATHER_API_KEY = '000000000000000000000000000';
+const CITY_ID = '1234567';  // Korrekte City ID von openweathermap
+const CHATGPT_API_URL = 'https://api.openai.com/v1/images/generations';
+const CHATGPT_API_KEY = '000000000000000000000000000000000000000000000';
+const BASE_PATH = '/var/www/html/openepaperlink/weather_chatgtp/';
+const LAST_WEATHER_FILE = path.join(BASE_PATH, 'last_weather.txt');
+const IMAGE_SAVE_PATH = path.join(BASE_PATH, 'image.png');
+const LOG_FILE_PATH = path.join(BASE_PATH, 'weather-script.log');
+const IMAGE_WIDTH = 1024;
+const IMAGE_HEIGHT = 1024;
+
+// Logger-Konfiguration
+const logger = winston.createLogger({
+    level: 'info',
+    format: winston.format.combine(
+        winston.format.timestamp({
+            format: 'YYYY-MM-DD HH:mm:ss'
+        }),
+        winston.format.printf(info => `${info.timestamp} ${info.level}: ${info.message}`)
+    ),
+    transports: [
+        new winston.transports.File({ filename: LOG_FILE_PATH }),
+        new winston.transports.Console()
+    ]
+});
+
+// Funktion zum Abrufen des Wetters
+async function getWeather() {
+    const weatherUrl = `http://api.openweathermap.org/data/2.5/weather`;
+    const params = {
+        id: CITY_ID,
+        appid: WEATHER_API_KEY,
+        units: 'metric',
+        lang: 'us'
+    };
+
+    logger.info('Fetching weather data from URL: ' + weatherUrl);
+    logger.info('With parameters: ' + JSON.stringify(params));
+
+    try {
+        const response = await axios.get(weatherUrl, { params });
+        logger.info('Weather data fetched successfully');
+        const weatherDescription = response.data.weather[0].description;
+        return weatherDescription;
+    } catch (error) {
+        logger.error('Error fetching weather data: ' + error.message);
+        if (error.response) {
+            logger.error('Response data: ' + JSON.stringify(error.response.data));
+        }
+        return null;
+    }
+}
+
+// Funktion zum Anfragen eines Bildes von DALL-E 3
+async function requestChatGPTImage(weatherCondition) {
+    let prompt = '';
+
+    if (weatherCondition.match(/thunderstorm/i)) {
+        prompt = `Create a creepy image that depicts the current weather: ${weatherCondition}, using only three colors: black (0 0 0), white (255 255 255), and red (255 0 0).`;
+    } else if (weatherCondition.match(/drizzle/i)) {
+        prompt = `Create a cheerful image of a light drizzle. Show people with umbrellas and light rain falling. Use only black, white, and red.`;
+    } else if (weatherCondition.match(/rain/i)) {
+        prompt = `Create a highly detailed and artistic image of children with umbrellas dancing in the rain. Ensure the mood is cheerful despite the rain. Use only black, white, and red.`;
+    } else if (weatherCondition.match(/snow/i)) {
+        prompt = `Create a cheerful and festive image of a snowy scene. Show people dressed in warm clothing, playing in the snow, building snowmen, and having snowball fights. Ensure the mood is fun and festive. Use only black, white, and red.`;
+    } else if (weatherCondition.match(/mist|fog/i)) {
+        prompt = `Create a cheerful and mysterious image of a foggy day. Show people walking through a misty landscape with street lights glowing softly. Ensure the mood is mysterious and calm. Use only black, white, and red.`;
+    } else if (weatherCondition.match(/clear/i)) {
+        prompt = `Create an artistic and cheerful image of a sunny and clear sky. Show people enjoying the outdoors, having picnics, and flying kites. Ensure the mood is joyful and vibrant. Use only black, white, and red.`;
+    } else if (weatherCondition.match(/clouds|cloudy|overcast/i)) {
+        prompt = `Create a lively and enjoyable image of a partly cloudy day. Show people flying kites and having picnics under the sky filled with fluffy clouds. Use only black, white, and red.`;
+    } else {
+        prompt = `Create a funny comic image of the current weather: ${weatherCondition}. Use only black, white, and red.`;
+    }
+
+    const data = {
+        prompt: prompt,
+        n: 1,
+        size: `${IMAGE_WIDTH}x${IMAGE_HEIGHT}`,
+        model: "dall-e-3",
+        quality: "hd"
+    };
+
+    logger.info('Requesting image generation from DALL-E 3 with data: ' + JSON.stringify(data));
+
+    try {
+        const response = await axios.post(
+            CHATGPT_API_URL,
+            data,
+            {
+                headers: {
+                    'Authorization': `Bearer ${CHATGPT_API_KEY}`,
+                    'Content-Type': 'application/json'
+                }
+            }
+        );
+
+        if (response.data && response.data.data && response.data.data[0] && response.data.data[0].url) {
+            const imageUrl = response.data.data[0].url;
+            logger.info('Image URL: ' + imageUrl);
+
+            const imageResponse = await axios.get(imageUrl, { responseType: 'stream' });
+            imageResponse.data.pipe(fs.createWriteStream(IMAGE_SAVE_PATH));
+            logger.info('Image saved to ' + IMAGE_SAVE_PATH);
+        } else {
+            logger.error('Invalid response format from DALL-E 3');
+        }
+    } catch (error) {
+        logger.error('Error generating image: ' + error.message);
+        if (error.response) {
+            logger.error('Response data: ' + JSON.stringify(error.response.data));
+        }
+    }
+}
+
+// Funktion zum Überprüfen der Wetteränderung
+async function checkWeatherChange() {
+    const weatherDescription = await getWeather();
+    if (!weatherDescription) {
+        logger.error('Current weather data not available.');
+        return;
+    }
+
+    logger.info('Checking for weather change...');
+    if (!fs.existsSync(LAST_WEATHER_FILE)) {
+        logger.info('Last weather file not found, creating a new one.');
+        fs.writeFileSync(LAST_WEATHER_FILE, weatherDescription, 'utf8');
+        await requestChatGPTImage(weatherDescription);
+    } else {
+        const lastWeather = fs.readFileSync(LAST_WEATHER_FILE, 'utf8');
+        if (weatherDescription !== lastWeather) {
+            logger.info('Weather has changed, generating a new image.');
+            fs.writeFileSync(LAST_WEATHER_FILE, weatherDescription, 'utf8');
+            await requestChatGPTImage(weatherDescription);
+        } else {
+            logger.info('Keine Änderung im Wetter, kein neues Bild erforderlich.');
+        }
+    }
+}
+
+// Einmalige Ausführung
+checkWeatherChange();
+
+// Scheduler, der das Skript täglich um 5 Uhr ausführt
+schedule("0 5 * * *", function() {
+    checkWeatherChange();
+});
