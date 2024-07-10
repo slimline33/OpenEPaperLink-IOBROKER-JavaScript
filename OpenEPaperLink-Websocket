@@ -1,11 +1,10 @@
-/// HIER DIE IP ADRESSE VOM OEPL ACCESS POINT EINTRAGEN
-
-const serverIP = 'XXX.XXX.XXX.XXX';  //z.B. 192.168.1.71
+const serverIP = '192.168.X.XX';  //z.B. 192.168.10.71
 
 /// AB HIER NICHTS MEHR ÄNDERN!
 
 const WebSocket = require('ws');
 const http = require('http');
+const https = require('https');
 const wsUrl = `ws://${serverIP}/ws`;  // WebSocket-URL
 
 let ws;
@@ -85,11 +84,33 @@ function fetchDimensions(hwType, callback) {
                     callback(`Error parsing JSON from ${url}: ${e}`);
                 }
             } else {
-                callback(`HTTP Error ${res.statusCode} from ${url}`);
+                fetchFromGithub(hwTypeHex, callback);
             }
         });
     }).on('error', (err) => {
-        callback(`Error fetching ${url}: ${err.message}`);
+        fetchFromGithub(hwTypeHex, callback);
+    });
+}
+
+function fetchFromGithub(hwTypeHex, callback) {
+    const githubUrl = `https://raw.githubusercontent.com/OpenEPaperLink/OpenEPaperLink/master/resources/tagtypes/${hwTypeHex}.json`;
+    https.get(githubUrl, (res) => {
+        let data = '';
+        res.on('data', (chunk) => data += chunk);
+        res.on('end', () => {
+            if (res.statusCode === 200) {
+                try {
+                    const dimensions = JSON.parse(data);
+                    callback(null, dimensions);
+                } catch (e) {
+                    callback(`Error parsing JSON from ${githubUrl}: ${e}`);
+                }
+            } else {
+                callback(`HTTP Error ${res.statusCode} from ${githubUrl}`);
+            }
+        });
+    }).on('error', (err) => {
+        callback(`Error fetching ${githubUrl}: ${err.message}`);
     });
 }
 
