@@ -31,7 +31,7 @@ Especially the displays (tags) with buttons change the value of â€œwakeupreasonâ
 
 7. Error Handling: Extensive error handling throughout the data processing, including logging errors for HTTP requests or data parsing.
 
-# OpenEPaperLink Weather Image from chatGTP
+# OpenEPaperLink Weather Image from chatGPT
 
 This script is designed to fetch the current weather for a specified city using the OpenWeatherMap API, generate an artistic image based on the weather condition using the DALL-E 3 model, resize the generated image, and log the entire process. The script is configured to run automatically every day at 5 AM.
 
