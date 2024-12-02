@@ -93,7 +93,7 @@ function fetchDimensions(hwType, callback) {
 }
 
 function fetchFromGithub(hwTypeHex, callback) {
-    const githubUrl = `https://raw.githubusercontent.com/OpenEPaperLink/OpenEPaperLink/master/resources/tagtypes/${hwTypeHex}.json`;
+    const githubUrl = `https://github.com/OpenEPaperLink/OpenEPaperLink/tree/master/resources/tagtypes/${hwTypeHex}.json`;
     https.get(githubUrl, (res) => {
         let data = '';
         res.on('data', (chunk) => data += chunk);
